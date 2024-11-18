@@ -1,24 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import MapManager from './components/MapManager';
+import Login from './components/Login';
+import './styles/App.css';
 
-function App() {
+const App: React.FC = () => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [parkingLots, setParkingLots] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (accessToken) {
+      fetchParkingLots();
+    }
+  }, [accessToken]);
+
+  const fetchParkingLots = async () => {
+    try {
+      const response = await fetch('http://localhost:5009/parking/all', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch parking lots');
+      }
+
+      const data = await response.json();
+      setParkingLots(data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {accessToken ? (
+        <MapManager parkingLots={parkingLots} />
+      ) : (
+        <Login onLogin={setAccessToken} />
+      )}
     </div>
   );
 }
