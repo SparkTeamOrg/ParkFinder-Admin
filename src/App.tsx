@@ -4,7 +4,7 @@ import Login from './components/Login';
 import './styles/App.css';
 
 const App: React.FC = () => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('accessToken'));
   const [parkingLots, setParkingLots] = useState<any[]>([]);
 
   useEffect(() => {
@@ -32,12 +32,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogin = (token: string) => {
+    localStorage.setItem('accessToken', token);
+    setAccessToken(token);
+  };
+
   return (
     <div className="App">
       {accessToken ? (
         <MapManager parkingLots={parkingLots} />
       ) : (
-        <Login onLogin={setAccessToken} />
+        <Login onLogin={handleLogin} />
       )}
     </div>
   );
