@@ -44,7 +44,7 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
 
   return (
     <MapContainer 
-      center={[44.787197, 20.457273]} 
+      center={[44.017055, 20.907343]} 
       zoom={13} 
       style={{ height: "100vh", width: "100%" }}
     >
