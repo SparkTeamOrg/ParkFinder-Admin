@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
-import L, { LatLngExpression, LatLngBoundsExpression } from 'leaflet';
+import { LatLngExpression } from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
 interface MapManagerProps {
@@ -10,12 +10,6 @@ interface MapManagerProps {
 
 const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
   const [polygons, setPolygons] = useState<LatLngExpression[][]>([]);
-  const [currentPolygon, setCurrentPolygon] = useState<LatLngExpression[]>([]);
-
-  const bounds: LatLngBoundsExpression = [
-    [44.604, 20.282], // Southwest coordinates of Serbia
-    [45.267, 20.799]  // Northeast coordinates of Serbia
-  ];
 
   useEffect(() => {
     if (parkingLots && Array.isArray(parkingLots)) {
