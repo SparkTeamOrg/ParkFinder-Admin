@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import apiClient from '../axiosConfig';
 
 interface LoginProps {
-  onLogin: (accessToken: string) => void;
+  onLogin: (accessToken: string, refreshToken: string) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -12,20 +13,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5009/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
-      onLogin(data.data.accessToken);
+      const response = await apiClient.post('/auth/login', { email, password });
+      const data = await response.data;
+      onLogin(data.data.accessToken, data.data.refreshToken);
     } catch (err) {
       setError('Invalid email or password');
     }

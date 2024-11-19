@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import MapManager from './components/MapManager';
 import Login from './components/Login';
+import apiClient from './axiosConfig';
 import './styles/App.css';
 
 const App: React.FC = () => {
   const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('accessToken'));
+  const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem('refreshToken'));
   const [parkingLots, setParkingLots] = useState<any[]>([]);
 
   useEffect(() => {
@@ -15,26 +17,19 @@ const App: React.FC = () => {
 
   const fetchParkingLots = async () => {
     try {
-      const response = await fetch('http://localhost:5009/parking/all', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch parking lots');
-      }
-
-      const data = await response.json();
+      const response = await apiClient.get('/parking/all');
+      const data = await response.data;
       setParkingLots(data.data || []);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleLogin = (token: string) => {
-    localStorage.setItem('accessToken', token);
-    setAccessToken(token);
+  const handleLogin = (accessToken: string, refreshToken: string) => {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    setAccessToken(accessToken);
+    setRefreshToken(refreshToken);
   };
 
   return (
