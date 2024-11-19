@@ -28,9 +28,9 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
   const MapEvents = () => {
     useMapEvents({
       click(e) {
-        if (L.latLngBounds(bounds).contains(e.latlng)) {
+        // if (L.latLngBounds(bounds).contains(e.latlng)) {
           setCurrentPolygon((prev) => [...prev, [e.latlng.lat, e.latlng.lng]]);
-        }
+        // }
       },
       contextmenu() {
         if (currentPolygon.length > 2) {
