@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polygon, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
+import { EditControl } from 'react-leaflet-draw';
 import L, { LatLngExpression, LatLngBoundsExpression } from 'leaflet';
+import 'leaflet-draw/dist/leaflet.draw.css';
 
 interface MapManagerProps {
   parkingLots: any[];
@@ -25,41 +27,45 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
     }
   }, [parkingLots]);
 
-  const MapEvents = () => {
-    useMapEvents({
-      click(e) {
-        // if (L.latLngBounds(bounds).contains(e.latlng)) {
-          setCurrentPolygon((prev) => [...prev, [e.latlng.lat, e.latlng.lng]]);
-        // }
-      },
-      contextmenu() {
-        if (currentPolygon.length > 2) {
-          setPolygons((prev) => [...prev, currentPolygon]);
-          setCurrentPolygon([]);
-        }
-      }
-    });
-    return null;
+  const handleCreated = (e: any) => {
+    const layer = e.layer;
+    const newPolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lat, latlng.lng]);
+    setPolygons((prev) => [...prev, newPolygon]);
   };
 
   return (
-    <MapContainer 
-      center={[44.017055, 20.907343]} 
-      zoom={13} 
-      style={{ height: "100vh", width: "100%" }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {polygons.map((polygon, idx) => (
-        <Polygon key={idx} positions={polygon} />
-      ))}
-      {currentPolygon.length > 1 && (
-        <Polyline positions={currentPolygon} />
-      )}
-      <MapEvents />
-    </MapContainer>
+    <div>
+      <MapContainer 
+        center={[44.010120, 20.917016]} 
+        zoom={13} 
+        style={{ height: "100vh", width: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <FeatureGroup>
+          <EditControl
+            position="topright"
+            onCreated={handleCreated}
+            draw={{
+              rectangle: false,
+              circle: false,
+              circlemarker: false,
+              marker: false,
+              polyline: false,
+              polygon: {
+                allowIntersection: false,
+                showArea: true,
+              },
+            }}
+          />
+          {polygons.map((polygon, idx) => (
+            <Polygon key={idx} positions={polygon} />
+          ))}
+        </FeatureGroup>
+      </MapContainer>
+    </div>
   );
 }
 
