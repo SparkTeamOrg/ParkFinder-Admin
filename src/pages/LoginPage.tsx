@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import apiClient from '../axiosConfig';
+import '../styles/LoginPage.css'; // Import the CSS file for styling
 
-const LoginPage: React.FC = () => {
+interface LoginProps {
+  onLogin: (accessToken: string, refreshToken: string) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,42 +16,39 @@ const LoginPage: React.FC = () => {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
       const data = await response.data;
-      localStorage.setItem('accessToken', data.data.accessToken);
-      localStorage.setItem('refreshToken', data.data.refreshToken);
-      window.location.href = '/map'; // Alternative navigation method
+      onLogin(data.data.accessToken, data.data.refreshToken);
     } catch (err) {
       setError('Invalid email or password');
     }
   };
 
   return (
-    <div>
+    <div className="login-container">
       <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div>
+      <form onSubmit={handleLogin} className="login-form">
+        <div className="form-group">
           <label>Email:</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="form-input"
           />
         </div>
-        <div>
+        <div className="form-group">
           <label>Password:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="form-input"
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">Login</button>
+        {error && <p className="error-message">{error}</p>}
+        <button type="submit" className="login-button">Login</button>
       </form>
-      <p>
-        Don't have an account? <a href="/register">Register</a>
-      </p>
     </div>
   );
 };
 
-export default LoginPage;
+export default Login;
