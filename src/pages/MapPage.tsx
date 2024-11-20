@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MapManager from '../components/MapManager';
 import apiClient from '../axiosConfig';
 import { TokenService } from '../services/TokenService';
-import { jwtDecode } from 'jwt-decode';
-import { parse } from 'path';
-
-interface JwtPayload {
-  UserId: string;
-}
+import { clearTokens, getUserIdFromToken } from '../utilis/TokenUtilis';
 
 const MapPage: React.FC = () => {
   const [parkingLots, setParkingLots] = useState<any[]>([]);
@@ -26,30 +21,18 @@ const MapPage: React.FC = () => {
     }
   };
 
-  const getUserId = () => {
-    const token = localStorage.getItem('accessToken');
-    if(token){
-      const decodedToken: JwtPayload = jwtDecode(token)
-      return parseInt(decodedToken.UserId)
-    }
-  }
-
   const handleLogout = async () => {
-    await TokenService.test();
-    // var userId = getUserId();
-    // console.log(userId)
-    // if(userId){
-    //   var deleteResponse = await TokenService.deleteRefreshToken(userId);
-    //   if(deleteResponse.isSuccessful){
-    //     console.log(deleteResponse.data.data)
-    //     localStorage.removeItem('accessToken');
-    //     localStorage.removeItem('refreshToken');
-    //     window.location.href = '/login';
-    //   }
-    //   else{
-    //     console.log(deleteResponse.data.messages[0])
-    //   }
-    // }
+    var userId = getUserIdFromToken();
+    if(userId){
+      var deleteResponse = await TokenService.deleteRefreshToken(userId);
+      if(deleteResponse.isSuccessful){
+        clearTokens()
+        window.location.href = '/login';
+      }
+      else{
+        console.log(deleteResponse.data.messages[0])
+      }
+    }
   };
 
   return (

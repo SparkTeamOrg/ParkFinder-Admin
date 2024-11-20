@@ -18,14 +18,5 @@ export const TokenService = {
         } catch(error){
             throw error;
         }
-    },
-
-    test: async () => {
-        try{
-            const response = await apiClient.get('/auth/test');
-            console.log(response.data)
-        } catch(error){
-            throw error;
-        }
     }
   };

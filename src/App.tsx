@@ -2,29 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import MapPage from './pages/MapPage';
-import { jwtDecode } from 'jwt-decode' 
 import './styles/App.css';
 import { TokenService } from './services/TokenService';
+import { clearTokens, isTokenExpired, setTokens } from './utilis/TokenUtilis';
+import { RingLoader } from 'react-spinners';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = (accessToken: string, refreshToken: string) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    setTokens(accessToken, refreshToken)
     setIsLoggedIn(true)
-  };
-
-  const isTokenExpired = (token: string | null): boolean => {
-    if (!token) return true;
-
-    try {
-      const decodedToken: any = jwtDecode(token);
-      const currentTime = Math.floor(Date.now() / 1000); 
-      return decodedToken.exp < currentTime;
-    } catch (error) {
-      return false;
-    }
   };
 
   useEffect(() => {
@@ -36,17 +25,17 @@ const App: React.FC = () => {
         setIsLoggedIn(true);
       } 
       else if (accessToken && refreshToken) {
+        setLoading(true);
         var response = await TokenService.refreshToken(accessToken, refreshToken);
         if(response.isSuccessful){
-          console.log(response)
-          localStorage.setItem('accessToken', response.data.accessToken);
-          localStorage.setItem('refreshToken', response.data.refreshToken);
+          setTokens(response.data.accessToken, response.data.refreshToken)
           setIsLoggedIn(true);
         }
         else{
           setIsLoggedIn(false);
           clearTokens();
         }
+        setLoading(false);
       }
       else{
         setIsLoggedIn(false);
@@ -57,9 +46,12 @@ const App: React.FC = () => {
     checkToken();
   }, []);
 
-  const clearTokens = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <RingLoader size={120} color={"#36D7B7"} loading={loading} />
+      </div>
+    ); 
   }
 
   return (
