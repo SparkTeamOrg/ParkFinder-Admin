@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import MapManager from '../components/MapManager';
 import apiClient from '../axiosConfig';
+import { TokenService } from '../services/TokenService';
+import { clearTokens, getUserIdFromToken } from '../utilis/TokenUtilis';
 
 const MapPage: React.FC = () => {
   const [parkingLots, setParkingLots] = useState<any[]>([]);
@@ -19,10 +21,18 @@ const MapPage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    var userId = getUserIdFromToken();
+    if(userId){
+      var deleteResponse = await TokenService.deleteRefreshToken(userId);
+      if(deleteResponse.isSuccessful){
+        clearTokens()
+        window.location.href = '/login';
+      }
+      else{
+        console.log(deleteResponse.data.messages[0])
+      }
+    }
   };
 
   return (
