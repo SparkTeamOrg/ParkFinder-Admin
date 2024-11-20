@@ -4,7 +4,7 @@ import LoginPage from './pages/LoginPage';
 import MapPage from './pages/MapPage';
 import { jwtDecode } from 'jwt-decode' 
 import './styles/App.css';
-import { TokenService } from './services/tokenService';
+import { TokenService } from './services/TokenService';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);

@@ -10,4 +10,22 @@ export const TokenService = {
         throw error;
       }
     },
+
+    deleteRefreshToken: async (userId: Number) => {
+        try{
+            const response = await apiClient.delete('/token/delete', { params: { userId } });
+            return response.data;
+        } catch(error){
+            throw error;
+        }
+    },
+
+    test: async () => {
+        try{
+            const response = await apiClient.get('/auth/test');
+            console.log(response.data)
+        } catch(error){
+            throw error;
+        }
+    }
   };
