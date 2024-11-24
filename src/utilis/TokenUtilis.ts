@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 
 interface JwtPayload {
     UserId: string;
+    IsAdmin: string;
 }
 
 export const setTokens = (accessToken: string, refreshToken: string) => {
@@ -31,4 +32,12 @@ export const getUserIdFromToken = () => {
       const decodedToken: JwtPayload = jwtDecode(token)
       return parseInt(decodedToken.UserId)
     }
+};
+
+export const isUserAdmin = (token: string | null) => {
+  if(token){
+    const decodedToken: JwtPayload = jwtDecode(token)
+    return decodedToken.IsAdmin === "True"
+  }
+  return false
 };
