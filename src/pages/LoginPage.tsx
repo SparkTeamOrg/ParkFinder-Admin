@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import apiClient from '../axiosConfig';
 import '../styles/LoginPage.css'; // Import the CSS file for styling
+import { isUserAdmin } from '../utilis/TokenUtilis';
 
 interface LoginProps {
   onLogin: (accessToken: string, refreshToken: string) => void;
@@ -16,7 +17,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
       const data = await response.data;
-      onLogin(data.data.accessToken, data.data.refreshToken);
+      const accessToken = data.data.accessToken;
+      const refreshToken = data.data.refreshToken;
+      if(isUserAdmin(accessToken)) 
+        onLogin(accessToken, refreshToken);
+      else 
+        setError('No administrator found with the provided credentials');
     } catch (err) {
       setError('Invalid email or password');
     }
