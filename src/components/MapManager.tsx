@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import { LatLngExpression } from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
+import { ParkingService } from '../services/ParkingLotService';
+import { CreateParkingLotDto } from '../dto/CreatParkingLotDto';
 
 interface MapManagerProps {
   parkingLots: any[];
@@ -13,7 +15,7 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
 
   useEffect(() => {
     if (parkingLots && Array.isArray(parkingLots)) {
-      const loadedPolygons = parkingLots.map(lot => {
+        const loadedPolygons = parkingLots.map(lot => {
         const geoJson = JSON.parse(lot.polygonGeoJson);
         return geoJson.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
       });
@@ -21,10 +23,18 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
     }
   }, [parkingLots]);
 
-  const handleCreated = (e: any) => {
+  const handleCreated = async (e: any) => {
     const layer = e.layer;
     const newPolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lat, latlng.lng]);
-    setPolygons((prev) => [...prev, newPolygon]);
+    const newBasePolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lng, latlng.lat]);
+
+    const dto: CreateParkingLotDto = { coordinates: newBasePolygon }
+    var response = await ParkingService.addParking(dto)
+    if(response.isSuccessful){
+      setPolygons((prev) => [...prev, newPolygon]); 
+    }else{
+      console.log("Error adding parking")
+    }
   };
 
   return (

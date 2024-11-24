@@ -3,6 +3,7 @@ import MapManager from '../components/MapManager';
 import apiClient from '../axiosConfig';
 import { TokenService } from '../services/TokenService';
 import { clearTokens, getUserIdFromToken } from '../utilis/TokenUtilis';
+import { ParkingService } from '../services/ParkingLotService';
 
 const MapPage: React.FC = () => {
   const [parkingLots, setParkingLots] = useState<any[]>([]);
@@ -13,8 +14,7 @@ const MapPage: React.FC = () => {
 
   const fetchParkingLots = async () => {
     try {
-      const response = await apiClient.get('/parking/all');
-      const data = await response.data;
+      const data = await ParkingService.getParkingLots()
       setParkingLots(data.data || []);
     } catch (err) {
       console.error(err);
