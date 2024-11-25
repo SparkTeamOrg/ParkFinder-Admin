@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import MapManager from '../components/MapManager';
-import apiClient from '../axiosConfig';
 import { TokenService } from '../services/TokenService';
 import { clearTokens, getUserIdFromToken } from '../utilis/TokenUtilis';
 import { ParkingService } from '../services/ParkingLotService';

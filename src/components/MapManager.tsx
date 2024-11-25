@@ -11,13 +11,14 @@ interface MapManagerProps {
 }
 
 const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
-  const [polygons, setPolygons] = useState<LatLngExpression[][]>([]);
+  const [polygons, setPolygons] = useState<{id:number, coordinates:LatLngExpression[]}[]>([]);
 
   useEffect(() => {
     if (parkingLots && Array.isArray(parkingLots)) {
         const loadedPolygons = parkingLots.map(lot => {
         const geoJson = JSON.parse(lot.polygonGeoJson);
-        return geoJson.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
+        var coordinates = geoJson.geometry.coordinates[0].map((coord: number[]) => [coord[1], coord[0]]);
+        return { id: lot.id, coordinates }
       });
       setPolygons(loadedPolygons);
     }
@@ -31,10 +32,37 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
     const dto: CreateParkingLotDto = { coordinates: newBasePolygon }
     var response = await ParkingService.addParking(dto)
     if(response.isSuccessful){
-      setPolygons((prev) => [...prev, newPolygon]); 
+      const newPolygonWithId = {
+        id: response.data.id,
+        coordinates: newPolygon,
+      };
+      setPolygons((prev) => [...prev, newPolygonWithId]);
     }else{
       console.log("Error adding parking")
     }
+  };
+
+  const handleDeleted = async (e: any) => {
+    const deletedLayers = e.layers.getLayers();
+
+    deletedLayers.forEach(async (layer: any) => {
+      const polygonId = layer.options.id;
+      if (polygonId) {
+        try {
+          const response = await ParkingService.deleteParkingLot(polygonId);
+          if (response.isSuccessful) {
+            layer.remove();
+            setPolygons((prevPolygons) =>
+              prevPolygons.filter((polygon) => polygon.id !== polygonId)
+            );
+          } else {
+            console.log("Error deleting polygon with ID: ", polygonId);
+          }
+        } catch (error) {
+          console.log("Error deleting polygon: ", error);
+        }
+      }
+    });
   };
 
   return (
@@ -52,6 +80,7 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
           <EditControl
             position="topright"
             onCreated={handleCreated}
+            onDeleted={handleDeleted}
             draw={{
               rectangle: false,
               circle: false,
@@ -65,7 +94,15 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
             }}
           />
           {polygons.map((polygon, idx) => (
-            <Polygon key={idx} positions={polygon} />
+            <Polygon 
+              key={idx} 
+              positions={polygon.coordinates}
+              eventHandlers={{
+                add: (e) => {
+                  e.target.options.id = polygon.id;
+                },
+              }}
+              />
           ))}
         </FeatureGroup>
       </MapContainer>
