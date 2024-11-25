@@ -1,5 +1,6 @@
 import axios from 'axios';
 import config from './config';
+import { TokenService } from './services/TokenService';
 
 const apiClient = axios.create({
   baseURL: config.apiBaseUrl,
@@ -20,5 +21,44 @@ apiClient.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const accessToken = localStorage.getItem('accessToken') || '';
+        const refreshToken = localStorage.getItem('refreshToken') || '';
+        
+        var response = await TokenService.refreshToken(accessToken, refreshToken)
+        
+        if(response.isSuccessful){
+          var newAccessToken = response.data.accessToken
+          localStorage.setItem('accessToken', response.data.accessToken)
+          localStorage.setItem('refreshToken', response.data.refreshToken)
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          return apiClient(originalRequest);
+        }
+        else{
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login';
+        }
+        
+      } catch (refreshError) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+)
 
 export default apiClient;
