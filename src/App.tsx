@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './pages/LoginPage';
 import MapPage from './pages/MapPage';
 import './styles/App.css';
-import { TokenService } from './services/ServiceToken';
+import { TokenService } from './services/TokenService';
 import { clearTokens, isTokenExpired, setTokens } from './utilis/TokenUtilis';
 import { RingLoader } from 'react-spinners';
 
