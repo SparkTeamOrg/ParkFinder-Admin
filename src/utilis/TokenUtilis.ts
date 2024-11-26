@@ -33,11 +33,3 @@ export const getUserIdFromToken = () => {
       return parseInt(decodedToken.UserId)
     }
 };
-
-export const isUserAdmin = (token: string | null) => {
-  if(token){
-    const decodedToken: JwtPayload = jwtDecode(token)
-    return decodedToken.IsAdmin === "True"
-  }
-  return false
-};
