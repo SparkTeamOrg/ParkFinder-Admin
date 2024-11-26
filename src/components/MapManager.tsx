@@ -44,25 +44,25 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
 
   const handleDeleted = async (e: any) => {
     const deletedLayers = e.layers.getLayers();
+    const polygonIds: number[] = [];
 
     deletedLayers.forEach(async (layer: any) => {
-      const polygonId = layer.options.id;
-      if (polygonId) {
-        try {
-          const response = await ParkingService.deleteParkingLot(polygonId);
-          if (response.isSuccessful) {
-            layer.remove();
-            setPolygons((prevPolygons) =>
-              prevPolygons.filter((polygon) => polygon.id !== polygonId)
-            );
-          } else {
-            console.log("Error deleting polygon with ID: ", polygonId);
-          }
-        } catch (error) {
-          console.log("Error deleting polygon: ", error);
-        }
-      }
+      if (layer.options.id) 
+        polygonIds.push(layer.options.id); 
     });
+
+    try {
+      const response = await ParkingService.deleteParkingLot(polygonIds);
+      if (response.isSuccessful) {
+        setPolygons((prevPolygons) =>
+          prevPolygons.filter((polygon) => !polygonIds.includes(polygon.id))
+        );
+      } else {
+        console.log("Error deleting polygon with ID: ", polygonIds);
+      }
+    } catch (error) {
+      console.log("Error deleting polygon: ", error);
+    }
   };
 
   return (

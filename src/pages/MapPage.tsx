@@ -13,8 +13,8 @@ const MapPage: React.FC = () => {
 
   const fetchParkingLots = async () => {
     try {
-      const data = await ParkingService.getParkingLots()
-      setParkingLots(data.data || []);
+      const response = await ParkingService.getParkingLots()
+      setParkingLots(response.data || []);
     } catch (err) {
       console.error(err);
     }
