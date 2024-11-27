@@ -1,3 +1,4 @@
 export interface CreateParkingLotDto{
-    coordinates: number[][]
+    coordinates: number[][],
+    parkingZoneId?: number
 }
