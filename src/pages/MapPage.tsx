@@ -21,16 +21,13 @@ const MapPage: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    var userId = getUserIdFromToken();
-    if(userId){
-      var deleteResponse = await TokenService.deleteRefreshToken(userId);
-      if(deleteResponse.isSuccessful){
-        clearTokens()
-        window.location.href = '/login';
-      }
-      else{
-        console.log(deleteResponse.data.messages[0])
-      }
+    var deleteResponse = await TokenService.deleteRefreshToken();
+    if(deleteResponse.isSuccessful){
+      clearTokens()
+      window.location.href = '/login';
+    }
+    else{
+      console.log(deleteResponse.data.messages[0])
     }
   };
 

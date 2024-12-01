@@ -11,9 +11,9 @@ export const TokenService = {
       }
     },
 
-    deleteRefreshToken: async (userId: Number) => {
+    deleteRefreshToken: async () => {
         try{
-            const response = await apiClient.delete('/token/delete', { params: { userId } });
+            const response = await apiClient.delete('/token/delete');
             return response.data;
         } catch(error){
             throw error;
