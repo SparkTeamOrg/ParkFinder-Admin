@@ -23,9 +23,9 @@ export const ParkingService = {
       }
     },
 
-    deleteParkingLot: async (id: Number) => {
+    deleteParkingLot: async (ids: Number[]) => {
         try{
-            const response = await apiClient.delete('/parking', { params: { id } });
+            const response = await apiClient.delete('/parking', {data: ids});
             return response.data;
         } catch(error){
             throw error;

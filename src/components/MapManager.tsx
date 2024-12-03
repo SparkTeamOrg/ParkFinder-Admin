@@ -5,6 +5,9 @@ import { LatLngExpression } from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { ParkingService } from '../services/ParkingLotService';
 import { CreateParkingLotDto } from '../dto/CreatParkingLotDto';
+import { ParkingZoneService } from '../services/ParkingZoneService';
+import ParkingZoneModal from './ParkingZoneModal';
+import ParkingDetailsModal from './ParkingDetailsModal';
 
 interface MapManagerProps {
   parkingLots: any[];
@@ -12,6 +15,12 @@ interface MapManagerProps {
 
 const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
   const [polygons, setPolygons] = useState<{id:number, coordinates:LatLngExpression[]}[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [parkingZones, setParkingZones] = useState<any[]>([]);
+  const [newPolygon, setNewPolygon] = useState<any>(null);
+  const [newPolygonLayer, setNewPolygonLayer] = useState<any>(null);
+  const [selectedParkingLot, setSelectedParkingLot] = useState<any>(null);
 
   useEffect(() => {
     if (parkingLots && Array.isArray(parkingLots)) {
@@ -26,10 +35,18 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
 
   const handleCreated = async (e: any) => {
     const layer = e.layer;
-    const newPolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lat, latlng.lng]);
+    // const newPolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lat, latlng.lng]);
     const newBasePolygon = layer.getLatLngs()[0].map((latlng: any) => [latlng.lng, latlng.lat]);
 
-    const dto: CreateParkingLotDto = { coordinates: newBasePolygon }
+    setNewPolygonLayer(layer);
+    const parkingZones = await ParkingZoneService.getParkingZones();
+    setParkingZones(parkingZones);
+    setNewPolygon(newBasePolygon);
+    setShowModal(true);
+  };
+
+  const handleZoneSelect = async (selectedZone: any) => {
+    const dto: CreateParkingLotDto = { coordinates: newPolygon, parkingZoneId: selectedZone.id };
     var response = await ParkingService.addParking(dto)
     if(response.isSuccessful){
       const newPolygonWithId = {
@@ -38,31 +55,45 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
       };
       setPolygons((prev) => [...prev, newPolygonWithId]);
     }else{
-      console.log("Error adding parking")
+      newPolygonLayer.remove();
     }
+    setShowModal(false);
+  };
+
+  const handleModalClose = (selected = false) => {
+    if (!selected && newPolygonLayer) {
+      newPolygonLayer.remove();
+    }
+    setShowModal(false);
   };
 
   const handleDeleted = async (e: any) => {
     const deletedLayers = e.layers.getLayers();
+    const polygonIds: number[] = [];
 
     deletedLayers.forEach(async (layer: any) => {
-      const polygonId = layer.options.id;
-      if (polygonId) {
-        try {
-          const response = await ParkingService.deleteParkingLot(polygonId);
-          if (response.isSuccessful) {
-            layer.remove();
-            setPolygons((prevPolygons) =>
-              prevPolygons.filter((polygon) => polygon.id !== polygonId)
-            );
-          } else {
-            console.log("Error deleting polygon with ID: ", polygonId);
-          }
-        } catch (error) {
-          console.log("Error deleting polygon: ", error);
-        }
-      }
+      if (layer.options.id) 
+        polygonIds.push(layer.options.id); 
     });
+
+    try {
+      const response = await ParkingService.deleteParkingLot(polygonIds);
+      if (response.isSuccessful) {
+        setPolygons((prevPolygons) =>
+          prevPolygons.filter((polygon) => !polygonIds.includes(polygon.id))
+        );
+      } else {
+        console.log("Error deleting polygon with ID: ", polygonIds);
+      }
+    } catch (error) {
+      console.log("Error deleting polygon: ", error);
+    }
+  };
+
+  const handlePolygonClick = (parkingLotId: number) => {
+    const selectedLot = parkingLots.find(lot => lot.id === parkingLotId);
+    setSelectedParkingLot(selectedLot);
+    setShowDetailsModal(true);
   };
 
   return (
@@ -95,17 +126,31 @@ const MapManager: React.FC<MapManagerProps> = ({ parkingLots }) => {
           />
           {polygons.map((polygon, idx) => (
             <Polygon 
-              key={idx} 
+              key={polygon.id} 
               positions={polygon.coordinates}
               eventHandlers={{
                 add: (e) => {
                   e.target.options.id = polygon.id;
                 },
+                click: () => handlePolygonClick(polygon.id),
               }}
-              />
+            />
           ))}
         </FeatureGroup>
       </MapContainer>
+      {showModal && (
+        <ParkingZoneModal 
+          parkingZones={parkingZones} 
+          onSelect={handleZoneSelect} 
+          onClose={handleModalClose} 
+        />
+      )}
+      {showDetailsModal && selectedParkingLot && (
+        <ParkingDetailsModal 
+          parkingLot={selectedParkingLot} 
+          onClose={() => setShowDetailsModal(false)} 
+        />
+      )}
     </div>
   );
 }
