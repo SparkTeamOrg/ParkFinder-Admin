@@ -13,24 +13,21 @@ const MapPage: React.FC = () => {
 
   const fetchParkingLots = async () => {
     try {
-      const data = await ParkingService.getParkingLots()
-      setParkingLots(data.data || []);
+      const response = await ParkingService.getParkingLots()
+      setParkingLots(response.data || []);
     } catch (err) {
       console.error(err);
     }
   };
 
   const handleLogout = async () => {
-    var userId = getUserIdFromToken();
-    if(userId){
-      var deleteResponse = await TokenService.deleteRefreshToken(userId);
-      if(deleteResponse.isSuccessful){
-        clearTokens()
-        window.location.href = '/login';
-      }
-      else{
-        console.log(deleteResponse.data.messages[0])
-      }
+    var deleteResponse = await TokenService.deleteRefreshToken();
+    if(deleteResponse.isSuccessful){
+      clearTokens()
+      window.location.href = '/login';
+    }
+    else{
+      console.log(deleteResponse.data.messages[0])
     }
   };
 
